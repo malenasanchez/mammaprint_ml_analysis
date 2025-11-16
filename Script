@@ -1,7 +1,8 @@
-# Modelosd e entrenamiento para MammaPrint
-
-**Autor:** Malena Sánchez Domínguez  
-**Fecha:** 2025-04-09
+# ===========================================
+# Modelos de entrenamiento para MammaPrint
+# Autor: Malena Sánchez Domínguez
+# Fecha: 2025-04-09
+# ===========================================
 
 Antes de todo elegimos el directorio de trabajo 
 ```r
