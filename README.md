@@ -1,8 +1,6 @@
 # mammaprint_ml_analysis
 Flujo completo de Machine Learning sobre datos de expresión génica de MammaPrint
 
-# MammaPrint_II
-
 ## Descripción
 Este repositorio contiene un flujo de trabajo en **R** para el análisis de datos de expresión génica y predicción de riesgo de cáncer de mama usando el **panel MammaPrint**.  
 
