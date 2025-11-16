@@ -11,32 +11,32 @@ setwd("C:/Users/Malena")
 Lo siguiente es cargar las librerias que vamos a necesitar.
 - caret sirve para entrenar los modelos de Machine Learning.
 - MLeval ayuda a evaluar y visualizar los modelos facilmente
-- pROC estÃ¡ especializado en calcular y graficar curvas ROC.
+- pROC está especializado en calcular y graficar curvas ROC.
 ```r
 library(caret)
 library(MLeval)
 library(pROC)
 ```
 
-A continuaciÃ³n, cargamos todos los archivos con los que vamos a trabajar, los cuales habÃ­amos guardado anteriormente como archivos .rds.
+A continuación, cargamos todos los archivos con los que vamos a trabajar, los cuales habíamos guardado anteriormente como archivos .rds.
 ```r
 filteredMat <- readRDS("filteredMat.rds")
 clinical <- readRDS("clinical_info_MammaPrint.rds")
 riesgo <- readRDS("riesgo_MammaPrint.rds")
 ```
 
-Ahora, convertimos la matriz filtrada en un data frame para facilitar asÃ­ cu manipulaciÃ³n, ya que los data frames son mÃ¡s flexibles que las matrices.
+Ahora, convertimos la matriz filtrada en un data frame para facilitar así­ cu manipulación, ya que los data frames son más flexibles que las matrices.
 ```r
 filteredMat <- as.data.frame(filteredMat)
 ```
 
-Podemos verificar que los datos se han cargado correctamente y explorar las columnas y filas con la funciÃ³n View().
+Podemos verificar que los datos se han cargado correctamente y explorar las columnas y filas con la función View().
 ```r
 View(filteredMat)
 ```
 
-TambiÃ©n podemos explorar el contenido interno de cada objeto con la funciÃ³n str().
-```{r, eval = FALSE}
+También, podemos explorar el contenido interno de cada objeto con la función str().
+```r, eval = FALSE
 str(filteredMat)
 str(clinical)
 str(riesgo)
@@ -47,24 +47,24 @@ Comprobamos las dimensiones de los datos cargados. En este caso, las dimensiones
 dim(filteredMat)
 dim(riesgo)
 ```
-Otra de las verificaciones que se pueden hacer es ver si hay valores faltantes con la funciÃ³n is.na().
+Otra de las verificaciones que se pueden hacer es ver si hay valores faltantes con la función is.na().
 ```r
 sum(is.na(filteredMat))
 sum(is.na(clinical))
 sum(is.na(riesgo))
 ```
 
-Revisamos la distribuciÃ³n de la variable respuesta con la funciÃ³n table(), con esta funciÃ³n vemos cuÃ¡ntes veces se repite cada valor en el conjunto de datos.
+Revisamos la distribución de la variable respuesta con la función table(), con esta función vemos cuántas veces se repite cada valor en el conjunto de datos.
 ```r
 table(riesgo)
 ```
-Comprobamos que los IDs de las muestras coinciden en todos los archivos. Esto es necesario para no entrenar el modelo con datos incorrectos y el modelo no sabrÃ­a a quÃ© caracterÃ­sticas corresponden las respuestas. AdemÃ¡s, de esta forma evitamos resultados errÃ³neos.
+Comprobamos que los IDs de las muestras coinciden en todos los archivos. Esto es necesario para no entrenar el modelo con datos incorrectos y el modelo no sabría a qué caracterí­sticas corresponden las respuestas. Además, de esta forma evitamos resultados erróneos.
 ```r
 all(rownames(filteredMat) == rownames(clinical))
 all(rownames(filteredMat)== names(riesgo))
 ```
 
-Creamos una particiÃ³n de los datos 70-30 para el entrenamiento y la validaciÃ³n. La funciÃ³n createDataPartition(), lo que hace es dividir los datos de manera estratificada, de manera que las clases estÃ©n equilibradas. Para ello, primero creamos una semilla aleatoria para que siempre se obtenga la misma divisiÃ³n de datos.
+Creamos una partición de los datos 70-30 para el entrenamiento y la validación. La función createDataPartition(), lo que hace es dividir los datos de manera estratificada, de manera que las clases están equilibradas. Para ello, primero creamos una semilla aleatoria para que siempre se obtenga la misma división de datos.
 ```r
 set.seed(234)
 trainIdx <- createDataPartition(riesgo, p = 0.7, list = FALSE, times = 1)
@@ -77,7 +77,7 @@ dataVal <- filteredMat[-trainIdx, ]
 ```
 
 
-Generamos los vectores de etiquetas para clasificaciÃ³n para los conjuntos de entrenamiento y de validacion. Convertimos a su vez la variable respuesta a factor con niveles válidos
+Generamos los vectores de etiquetas para clasificación para los conjuntos de entrenamiento y de validacion. Convertimos a su vez la variable respuesta a factor con niveles válidos
 ```r
 # Convertimos la variable respuesta a factor con niveles válidos
 claseTrain <- factor(riesgo[trainIdx],
@@ -96,7 +96,7 @@ table(riesgo[trainIdx])
 table(riesgo[-trainIdx])
 ```
 
-Generamos los vectores de respuesta para regresiÃ³n, es decir, extraemos el valor continuo que vamos a predecir en modelos de regresiÃ³n
+Generamos los vectores de respuesta para regresión, es decir, extraemos el valor continuo que vamos a predecir en modelos de regresión
 ```r
 scoreTrain <- clinical$MP_score[trainIdx]
 scoreVal <- clinical$MP_score[-trainIdx]
@@ -115,19 +115,19 @@ trainProcessed_class <- cbind(claseTrain, trainProcessed)
 valProcessed_class <- cbind(claseVal, valProcessed)
 ```
 
-AÃ±adimos la variable de respuesta al dataset procesado para regresiÃ³n
+AÃ±adimos la variable de respuesta al dataset procesado para regresión
 ```r
 trainProcessed_reg <- cbind(scoreTrain, trainProcessed)
 ```
 
-Convertimos la variable de respuesta de clasificaciÃ³n en factor con niveles "BajoRiesgo" y "AltoRiesgo. Esto es muy util para evitar errores en el entrenamiento del modelo.
+Convertimos la variable de respuesta de clasificación en factor con niveles "BajoRiesgo" y "AltoRiesgo. Esto es muy útil para evitar errores en el entrenamiento del modelo.
 ```r
 trainProcessed_class$claseTrain <- factor(claseTrain,
                                           levels = c("Bajo riesgo", "Alto riesgo"),
                                           labels 
 ```
 
-Creamos el objeto con la informaciÃ³n de control del modelo, con funciÃ³n de selecciÃ³n "best". Antes de eso configuramos la semilla de reproducibilidad
+Creamos el objeto con la información de control del modelo, con función de selección "best". Antes de eso configuramos la semilla de reproducibilidad
 ```r
 set.seed(234)
   
@@ -141,12 +141,12 @@ filtCtrl_rf <- trainControl(method = "repeatedcv",
                               classProbs = TRUE)
 ```
 
-Definimos los valores del hiperparÃ¡metro 'mtry' que vamos a probar, es decir, especificamos el nÃºmero de variables que selecciona en cada split. 
+Definimos los valores del hiperparámetro 'mtry' que vamos a probar, es decir, especificamos el número de variables que selecciona en cada split. 
 ```r
 tunegrid_rf <- expand.grid(mtry = c(5, 25, 50, 75, 100))
 ```
 
-Entrenamos el modelo, en este caso un RF, empleando los parÃ¡metros de control establecidos anteriormente en trainControl
+Entrenamos el modelo, en este caso un RF, empleando los parámetros de control establecidos anteriormente en trainControl
 ```r
 RF <- train(claseTrain ~ .,
               data = trainProcessed_class,
@@ -196,7 +196,7 @@ RF$times
 summary(RF)
 ```
 
-Para obtener y visualizar la importancia de las caracterÃ­sticas ordenadas hacemos lo siguiente:
+Para obtener y visualizar la importancia de las características ordenadas hacemos lo siguiente:
 ```r
 vars<-varImp(RF)
 varsImp<-vars$importance
@@ -205,7 +205,7 @@ imp<-imp[order(imp$Imp,decreasing = T),]
 dotPlot(vars)
 ```
 
-Podemos visualizar en un grÃ¡fico el output de entrenamiento del modelo
+Podemos visualizar en un gráfico el output de entrenamiento del modelo
 con una funciÃ³n del propio caret:
 ```r
 plot(RF)
@@ -232,21 +232,21 @@ Ploteamos la curva ROC usando ggplot2
 evalRF$roc
 ```
 
-Obtenemos la AUC y otras mÃ©tricas:
+Obtenemos la AUC y otras métricas:
 ```r
 evalRF$stdres
 ```
-Ahora vamos a cargar el paquee pROC, el cual se utiliza para generar y visualizar curvas ROC, permitiÃ©ndonos asÃ­ evaluar el rendimiento de un modelo de clasificaciÃ³n binaria.
+Ahora vamos a cargar el paquee pROC, el cual se utiliza para generar y visualizar curvas ROC, permitiéndonos así­ evaluar el rendimiento de un modelo de clasificación binaria.
 ```r
 library(pROC)
 ```
 
-Seleccionamos un parÃ¡metro, por ejemplo
+Seleccionamos un parámetro, por ejemplo
 ```r
 selectedIdx <- RF$pred$mtry == 50
 ```
 
-Ploteamos la curva ROC correspondiente, asumiendo que "AltoRiesgo", es la clase positiva, pero antes de eso tenemos que crear el objeto ROC, ya que nos aparecÃ­a un error:
+Ploteamos la curva ROC correspondiente, asumiendo que "AltoRiesgo", es la clase positiva, pero antes de eso tenemos que crear el objeto ROC, ya que nos aparecí­a un error:
 ```r
 roc_obj <- roc(response = RF$pred$obs[selectedIdx],
                predictor = RF$pred$AltoRiesgo[selectedIdx])
@@ -258,7 +258,7 @@ plot(roc_obj,
      print.auc = TRUE,
      main = "Curva ROC para mtry = 50")
 ```
-Empleando el modelo entrenado podemos predecir la clase de los datos de validaciÃ³n
+Empleando el modelo entrenado podemos predecir la clase de los datos de validación
 ```r
 predVal <- predict(RF, newdata = dataVal, type = "prob")
 predCall<- predict(RF, newdata = dataVal, type="raw")
@@ -266,7 +266,7 @@ names(predCall) <- rownames(predVal)
 predcall <- predCall
 ```
 
-Calculamos la matriz de confusiÃ³n, pero primero tenemos que hacer que los niveles de ambos objetos coincidan:
+Calculamos la matriz de confusión, pero primero tenemos que hacer que los niveles de ambos objetos coincidan:
 ```r
 claseVal <- factor(claseVal,
                    levels = c("Bajo riesgo", "Alto riesgo"),
@@ -277,7 +277,7 @@ confusionMatrix(data = predCall,
                positive = "AltoRiesgo",
                mode = "everything")
 ```
-Ahora lo que vamos a hacer es entrenar un nuevo modelo, en este caso GBM (Gradient Boosting Machine). Para ello, no es necesario modificar todo, simplemente creamos un nuevo data frame para este modelo y utilizamos la funciÃ³n train(). Antes de eso definimos un tuneGrid para GBM con los hiperparÃ¡metros clave del modelo.
+Ahora lo que vamos a hacer es entrenar un nuevo modelo, en este caso GBM (Gradient Boosting Machine). Para ello, no es necesario modificar todo, simplemente creamos un nuevo data frame para este modelo y utilizamos la función train(). Antes de eso definimos un tuneGrid para GBM con los hiperparámetros clave del modelo.
 ```r
 tunegrid_gbm <- expand.grid(n.trees = c(100, 150, 200),
                             interaction.depth = c(1, 3, 5),
@@ -356,7 +356,7 @@ evalgbmFit$roc
 evalgbmFit$stdres
 ```
 
-Para generar y visualizar las curvas ROC para GBM, primero seleccionamos el mejor nÃºmero de Ã¡rboles (n.trees)
+Para generar y visualizar las curvas ROC para GBM, primero seleccionamos el mejor número de árboles (n.trees)
 ```r
 bestTrees <- gbmFit$bestTune$n.trees
 selectedIdx <- gbmFit$pred$n.trees == bestTrees
@@ -374,7 +374,7 @@ rocgbm <- roc(response = gbmFit$pred$obs[selectedIdx],
 
 plot(rocgbm, col = "#e6550d", print.auc = TRUE, main = "Curva ROC - GBM")
 ```
-Matriz de confusion: Primero hacemos predicciones de clase en el conjunto de validaciÃ³n
+Matriz de confusion: Primero hacemos predicciones de clase en el conjunto de validación
 ```r
 predCall_gbm <- predict(gbmFit, newdata = valProcessed_class)
 
@@ -386,16 +386,16 @@ levels(predCall_gbm)
 levels(claseVal)
 ```
 
-Creamos la matriz de confusiÃ³n
+Creamos la matriz de confusión
 ```r
 confusionMatrix(data = predCall_gbm,
                 reference = claseVal,
                 positive = "AltoRiesgo",
                 mode = "everything")
 ```
-Por Ãºltimo, vamos a entrenar un modelo lineal (lm). En este caso, trabajamos con regresiÃ³n, en vez de clasificaciÃ³n. En este caso, creamos un nuevo fitCtrl, ya que los anteriores llevaban 'classProb = TRUE',y los modelos lm no utilizan clasificaciÃ³n, sino que predicen valores continuos.
+Por último, vamos a entrenar un modelo lineal (lm). En este caso, trabajamos con regresión, en vez de clasificación. En este caso, creamos un nuevo fitCtrl, ya que los anteriores llevaban 'classProb = TRUE',y los modelos lm no utilizan clasificación, sino que predicen valores continuos.
 
-AdemÃ¡s, en este caso, tampoco es necesario definir un tuneGrid porque no hay hiperparÃ¡metros que ajustar. El modelo de regresiÃ³n lineal clÃ¡sica, lo que hace es estimar los coeficientes por mÃ­nimos cuadrados ordinarios (OLS).
+Además, en este caso, tampoco es necesario definir un tuneGrid porque no hay hiperparámetros que ajustar. El modelo de regresión lineal clásica, lo que hace es estimar los coeficientes por mí­nimos cuadrados ordinarios (OLS).
 
 Aplicamos un PCA (preProcess = "pca") para reducir la dimensionalidad, dado que nos aparecia un aviso de "prediction from rank-deficient fit. Este aviso ocurre porque hay multicolinealidad en los datos, por lo que el modelo no estima correctamente los coeficientes. 
 ```r
@@ -481,7 +481,7 @@ imp<-data.frame(Imp = varsImp$Overall, Genes = rownames(varsImp))
 imp<-imp[order(imp$Imp,decreasing = T),]
 dotPlot(vars)
 ```
-En este caso no podemos hacer plot() dado que, el modelo lineal no tiene heperparÃ¡metros que ajustar. En su lugar, se peude hacer lo siguiente
+En este caso no podemos hacer plot() dado que, el modelo lineal no tiene heperparámetros que ajustar. En su lugar, se puede hacer lo siguiente
 ```r
 summary(lmFit$finalModel)
 ```
@@ -498,4 +498,4 @@ abline(h = 0, col = "red", lty = 2)
 qqnorm(residuals(lmFit$finalModel))
 qqline(residuals(lmFit$finalModel), col = "blue")
 ```
-Como lm lo hemos usado para una predicciÃ³n de valor continuo, no podemos hacer la curva ROC, ya que esta solo es para clasificaciÃ³n binaria. Sin embargo. Ocurre lo mismo para calcular la matriz de confusÃ³n.
+Como lm lo hemos usado para una predicción de valor continuo, no podemos hacer la curva ROC, ya que esta solo es para clasificación binaria. Ocurre lo mismo para calcular la matriz de confusón.
