@@ -1,14 +1,18 @@
-
+# ===========================================
+# MammaPrint Preprocessing and Plots
+# Autor: Malena Sánchez Domínguez
+# Fecha: 2025-04-09
+# ===========================================
 
 
 Lo primero de todo es seleccionar el directorio donde queremos trabajar
-```{r}
+```r
 setwd("C:/Actividad Unidad 5")
 ```
 
 Cargamos y leemos la matriz de expresión y y la información clínica de los datos. En este caso "mat"
 presenta las muestras en las filas y los genes en las columnas.
-```{r}
+```r
 clinical <- read.delim("C:/Actividad Unidad 5/clinical_info_TCGA-BRCA_MammaPrintInfo.tsv",
                        header=TRUE,
                        sep="\t",
@@ -24,26 +28,26 @@ El siguiente paso es establecer la variable MP_risk como un factor, ya que los m
 a la hora de aplicar sus funciones. De esta manera, tenemos como etiquetas "Bajo riesgo" y "Alto riesgo",
 donde el valor numérico de MP_risk de 0 corresponderán a "Bajo riesgo" y el de 1 a "Alto riesgo". Por otro
 lado, las caracteríssticas serán las diferentes meustras.
-```{r}
+```r
 riesgo <- factor(clinical$MP_risk,
                  levels=c(0,1),
                  labels=c("Bajo riesgo","Alto riesgo"))
 ```
 
 Cargamos el paquete caret para Machine Learning y realizar el procesamiento de datos
-```{r}
+```r
 library(caret)
 ```
 
 Antes de realizar la visualización vamos a seleccionar las 5 primeras muestras más significativas de la matriz
 de expresión en función del riesgo.Para ello, necesitamos cargar el paquete limma ya que realizaremos un
 análisis diferenccial primero.
-```{r}
+```r
 library(limma)
 ```
 
 Como vimos en la actividad anterior, creamos un diseño para hacer el análisis.
-```{r}
+```r
 design <-model.matrix(~riesgo)
 ```
 
@@ -51,43 +55,43 @@ En el caso anterior utilizamos qlmQLFit, pero en este caso "mat" ya es una matri
 mejor usamos lmFit para hacer el análisis diferencial. Para poder utilizar esta funcion, debemos transponer
 la matriz porque espera que las columnas sean muestras y los genes filas. Entonces aplicamos el modelo
 lineal para encontrar genes diferenciales
-```{r}
+```r
 fit <- lmFit(as.matrix(t(mat)), design)
 fit <- eBayes(fit)
 ```
 
 Verificamos el nombre del coeficiente. Revisamos qué nombre tiene la columna de "Alto riesgo".
-```{r}
+```r
 colnames(design)
 ```
 
 Ahora lo que hacemos es extraer los resultados ordenados por significancia (p-value). Aquí coef=2 significa
 que "riesgoAlto riesgo" está en la segunda columna
-```{r}
+```r
 top5 <- topTable(fit, coef=2, number=5, sort.by="P")
 ```
 
 Una vez extraidos, lo que hacemos es obtener los nombres de los genes seleccionados
-```{r}
+```r
 top5_genes <- rownames(top5)
 ```
 
 Filtramos la matriz de expresión con estos genes que hemos seleccionado, pero antes transponemos la matriz
-```{r}
+```r
 mat_t <- t(mat)
 
 top5_mat <- mat_t[top5_genes, , drop=FALSE]
 ```
 
 Luego trasponemos la matriz para que las muestras sean filas y los genes columnas
-```{r}
+```r
 top5_mat <- t(top5_mat)
 ```
 
 Para la visualización de los datos utilizamos, en este caso la funcion featurePlot(), y realizamos un gráfico
 por pares para ver la relación entre las 5 muestras más significativas. Dentro de la misma función lo que
 hacemos es convertir la matriz en data frame.
-```{r}
+```r
 featurePlot(x = as.data.frame(top5_mat),
             y = riesgo,
             plot = "pairs",
@@ -95,7 +99,7 @@ featurePlot(x = as.data.frame(top5_mat),
 ```
 
 Tambien podemos visualizar los datos haciendo un plot de tipo box:
-```{r}
+```r
 featurePlot(x = as.data.frame(top5_mat),
             y = riesgo,
             plot = "box",
@@ -103,7 +107,7 @@ featurePlot(x = as.data.frame(top5_mat),
 ```
 
 Se pueden hacer otras gráficas adicionales como por ejemplo Scatter plot entre dos genes del top5 (ejemplo con el primer y segundo gen) o density plot para uno de los genes (ejemplo con el primer gen)
-```{r}
+```r
 gene1 <- top5_genes[1]
 gene2 <- top5_genes[2]
 scatter_data <- data.frame(
@@ -119,7 +123,7 @@ ggplot(scatter_data, aes(x = "Gene1", y = "Gene2", color = "Riesgo")) +
        x = gene1, 
        y = gene2)
 ```
-```{r}
+```r
 ggplot(scatter_data, aes(x = Gene1, fill = Riesgo)) +
   geom_density(alpha = 0.6) +
   theme_minimal() +
@@ -132,7 +136,7 @@ de predictores formando un nuevo data frame.
 Luego convertimos las variables categóricas en variables dummy. Una vez hecho esto, detectamos variables
 con varianza casi nula con nearZeroVar(). Con sum() podemos ver el total de variabels identificadas y, por
 último, filteredMat va a contener la matriz sin las variables problemáticas.
-```{r}
+```r
 newMat<-cbind(riesgo, clinical$MP_score, mat)
 dumVar <- dummyVars( riesgo ~ ., data = newMat)
 dummy<-predict(dumVar, newdata = newMat)
@@ -144,31 +148,31 @@ filteredMat <- mat[, -nzv$nzv]
 
 En este paso identificamos y eliminamos las variables altamente correlacionadas. Para ello en varCor vamos
 a obtener una matriz simétrica que indica cómo de correlacionadas están dos variables.
-```{r}
+```r
 varCor <- cor(filteredMat)
 ```
 
 Con la función findCorrelation() buscamos los pares de variables con alta correlación y se seleccionan las que
 deberán eliminarse.
-```{r}
+```r
 highCorVar <- findCorrelation(varCor, cutoff = .75)
 ```
 
 Eliminamos las variables correlacionadas de filteredMat y nos quedamos con la matriz filteredVar, la cual
 tiene menos redundancia.
-```{r}
+```r
 filteredVar <- filteredMat[,-highCorVar]
 ```
 
 Calculamos entonces la matriz de correlación con las variables filtradas (varCor2) y hacemos el resumen
 estadístico.
-```{r}
+```r
 varCor2 <- cor(filteredVar)
 summary(varCor2[upper.tri(varCor2)])
 ```
 
 Por último, podemos guardarlo de la siguiente forma:
-```{r}
+```r
 sessionInfo()
 save.image(file='myEnvironment.RData')
 ```
