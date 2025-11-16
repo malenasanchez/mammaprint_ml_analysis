@@ -1,5 +1,5 @@
 # ===========================================
-# Modelos de entrenamiento para MammaPrint
+# MammaPrint ModelTraining and Evaluation
 # Autor: Malena Sánchez Domínguez
 # Fecha: 2025-04-09
 # ===========================================
