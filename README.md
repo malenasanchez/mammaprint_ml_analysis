@@ -82,4 +82,7 @@ Los gráficos y tablas se generarán en la carpeta results/. Se incluyen curvas 
 - Matrices de confusión y métricas de rendimiento.
 - Métricas de regresión (RMSE, MAE, R²) para modelos de predicción continua.
 
-
+## Autor
+Autora: Malena Sánchez Domínguez
+Institución: Universidad Europea de Madrid
+Contacto: malenasanchezdominguez99@gmail.com
